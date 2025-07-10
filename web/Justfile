@@ -1,4 +1,0 @@
-#Justfile
-
-build:
-    pug src/index.pug -o out/
