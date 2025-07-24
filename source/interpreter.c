@@ -7,6 +7,10 @@ typedef union data {
     char charValue;
 } Data;
 
+void pushStack(Data* data,Data item) {
+    data[sizeof(data)/sizeof(Data)] = item;
+}
+
 Data* makeStack(int len) {
     Data* ptr;
 
@@ -32,7 +36,7 @@ typedef struct instructPair {
 } instructionPair;
 
 typedef struct Runtime {
-    int* words[];
+    int* words;
     int pc; // program counter
     Data* stack;
 } runtime;
