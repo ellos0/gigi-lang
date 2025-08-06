@@ -1,17 +1,18 @@
-import Data.Char (isSpace, isAlpha, isDigit)
+
+import Data.Char (isSpace, isAlpha, isDigit,ord)
 import Data.Maybe (catMaybes)
 
 data SubToken = Alpha Char
               | Num Integer
               | Whitespace Char
               | Operator Char
-              deriving (Show,Eq)
+              deriving (Show, Eq)
 
 data Token = Keyword String
            | Number Integer
-           | Operator Char
-           | Whitespace String
-           deriving (Show,Eq)
+           | TokenOperator Char
+           | WhitespaceType Int
+           deriving (Show, Eq)
 
 type SubTokens = [SubToken]
 
@@ -29,12 +30,11 @@ classifyChar c
   | isAlpha c = Just (Alpha c)
   | isDigit c = Just (Num (fromIntegral (ord c)))
   | isSpace c = Just (Whitespace c)
-  | otherwise Nothing
+  | otherwise = Nothing
 
 classifyChars :: String -> [Maybe SubToken]
 classifyChars s = map classifyChar s
 
 main :: IO ()
-
 main = do
   print "Hello, world!"
