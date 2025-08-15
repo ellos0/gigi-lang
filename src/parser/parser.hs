@@ -1,25 +1,27 @@
 module Parser (parse, IR) where
 
-import Constants (keywords)
-import Tokenizer (Token,Tokens,tokenize,getTokenType)
+import Constants (keywords, keywordToOperation)
+import Tokenizer (Token,Tokens,tokenize,getTokenType,LiteralValue)
 
-data Arg = IntOutput Int
-         | FloatOutput Float
-         | CharOutput Char
-         | StringOutput String
-         deriving (Show)
 
-data IR = IR {op :: Int, args :: [Arg] } deriving (Show)
+data IR = IR {op :: Int,  args :: Maybe [LiteralValue] } deriving (Show)
 
-parseWord x 
-  | x `elem` 
+parseWord :: Token -> IR
+parseWord x = IR (keywordToOperation "jmp") (Just (x))
 
-parseToken :: Token -> IR
-parseToken x = case getTokenType x of
+parseOperator :: Token -> IR
+parseOperator x = IR (keywordToOperation (charToString x))  (Nothing)
+  where 
+    charToString c = [c]
+
+parseKeyWord :: [Token] -> IR
+parseKeyWord 
+
+parseTokenSingle :: Token -> IR
+parseTokenSingle x = case getTokenType x of
   "Word" -> parseWord x
-  "Number" -> parseNumber x
   "Operator" -> parseOperator x
-  "Whitespace" -> parseWhitespace x
+  _ -> x
 
 parseTokens :: Tokens -> [IR]
-parseTokens xs = map parseToken xs
+parseTokens xs = map parseTokenSingle xs

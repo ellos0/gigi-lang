@@ -39,7 +39,4 @@ wordsToTokens x = (map wordToToken x)
 tokenize :: String -> Tokens
 tokenize = wordsToTokens . words
 
-main :: IO ()
-main = do
-  print ("hi")
  

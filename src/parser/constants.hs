@@ -1,4 +1,6 @@
-module Constants (keywords,operators) where
+module Constants (keywords,operators,keywordToOperation,lookupTable) where
+
+import Data.Maybe (fromJust)
 
 operators :: String
 operators = "+-*/%:"
@@ -6,5 +8,8 @@ operators = "+-*/%:"
 keywords :: [String]
 keywords = ["push","pull","get","set","length"]
 
-lookupTable :: [(Either Char String,Int)]
-lookupTable = []
+lookupTable :: [(String,Int)]
+lookupTable = [("push", 0)]
+
+keywordToOperation :: String -> Int
+keywordToOperation x = fromJust (lookup x lookupTable)
