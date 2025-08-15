@@ -25,3 +25,7 @@ parseTokenSingle x = case getTokenType x of
 
 parseTokens :: Tokens -> [IR]
 parseTokens xs = map parseTokenSingle xs
+
+main :: IO ()
+main = do
+  print "hi from the parser"
