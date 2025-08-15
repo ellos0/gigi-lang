@@ -13,3 +13,7 @@ lookupTable = [("push", 0)]
 
 keywordToOperation :: String -> Int
 keywordToOperation x = fromJust (lookup x lookupTable)
+
+main :: IO ()
+main = do
+  print "greetings from the constants"
