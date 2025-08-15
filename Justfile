@@ -1,3 +1,3 @@
 build:
-  ghc -static -o out/parser src/parser/parser.hs
+  ghc -o out/parser src/parser/parser.hs
 
