@@ -1,10 +1,25 @@
 module Compiler.Lexer where
 
-import Text.Parsec
-import Text.Parsec.String
-import Text.ParserCombinators.Parsec
+--splitByNewlines :: String -> [String]
+--splitByNewLines = lines
 
-type Var = String
-data Statement = Assign Var Int | Function String [Int] deriving (Eq,Show)
-type Code = [Statement]
+--splitBySpaces :: String -> [String]
+--splitBySpaces = words
 
+data Statement
+  = Assignment String String
+  | Add String String
+  | Subtract String String
+  | Multiply String String
+  | Divide String String
+  | Function String [Statement]
+
+processSingleLine :: [String] -> String
+processSingleLine (x:xs)
+    | x == "=" = "Assignment"
+    | x == "+" = "Add"
+    | x == "-" = "Minus"
+    | x == "*" = "Multiply"
+    | x == "/" = "Divide"
+    | x == "defun" = "Function"
+    | otherwise = "Unknown"
