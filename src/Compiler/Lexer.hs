@@ -1,25 +1,28 @@
 module Compiler.Lexer where
 
---splitByNewlines :: String -> [String]
---splitByNewLines = lines
+import Text.Parsec
+import Text.Parsec.String (Parser)
 
---splitBySpaces :: String -> [String]
---splitBySpaces = words
+data Expr
+  = Atom String
+  | List [Expr]
+  deriving (Eq,Show)
 
-data Statement
-  = Assignment String String
-  | Add String String
-  | Subtract String String
-  | Multiply String String
-  | Divide String String
-  | Function String [Statement]
+atom :: Parser Expr
+atom = Atom <$> many1 alphaNum
 
-processSingleLine :: [String] -> String
-processSingleLine (x:xs)
-    | x == "=" = "Assignment"
-    | x == "+" = "Add"
-    | x == "-" = "Minus"
-    | x == "*" = "Multiply"
-    | x == "/" = "Divide"
-    | x == "defun" = "Function"
-    | otherwise = "Unknown"
+list :: Parser Expr
+list = List <$> (between (char '(') (char ')') (spaces *> sepBy expression spaces))
+
+expression :: Parser Expr
+expression = try list <|> atom
+
+getAtoms :: String -> Either ParseError [Expr]
+getAtoms input = parse (spaces *> sepBy expression spaces <* eof) "" input
+
+data OperatorPair = OperatorPair {op :: Expr, operands :: [Expr]} deriving (Eq, Show)
+
+makeOperatorPair :: Either ParseError [Expr] -> Maybe OperatorPair
+makeOperatorPair (Left _) = Nothing
+makeOperatorPair (Right []) = Nothing
+makeOperatorPair (Right (x:xs)) = Just (OperatorPair {op = x, operands = xs})
