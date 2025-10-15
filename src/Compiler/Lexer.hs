@@ -20,9 +20,39 @@ expression = try list <|> atom
 getAtoms :: String -> Either ParseError [Expr]
 getAtoms input = parse (spaces *> sepBy expression spaces <* eof) "" input
 
-data OperatorPair = OperatorPair {op :: Expr, operands :: [Expr]} deriving (Eq, Show)
+data FunctionPair = FunctionPair Expr [Expr] deriving (Eq, Show)
 
-makeOperatorPair :: Either ParseError [Expr] -> Maybe OperatorPair
-makeOperatorPair (Left _) = Nothing
-makeOperatorPair (Right []) = Nothing
-makeOperatorPair (Right (x:xs)) = Just (OperatorPair {op = x, operands = xs})
+makeStatement :: Either ParseError [Expr] -> Maybe FunctionPair
+makeStatement (Left _) = Nothing
+makeStatement (Right []) = Nothing
+makeStatement (Right (x:xs)) = Just (Statement x xs)
+
+getAtomValue :: Expr -> Maybe String
+getAtomValue (Atom s) = Just s
+getAtomValue (List _) = Nothing
+
+data Statement
+  = Assignment String Expr
+  | Defun String Expr
+  | Application Expr 
+  | Add Expr Expr
+  | Subtract Expr Expr
+  | Multiply Expr Expr
+  | Divide Expr Expr
+  | Power Expr Expr
+
+convertExpr :: FunctionPair -> Maybe Statement
+
+convertExpr (FunctionPair "=" [x1, x2]) = Just (Assignment (getAtomValue x1) x2)
+convertExpr (FunctionPair "defun" [x1, x2]) = Just (Defun (getAtomValue x1) x2)
+
+convertExpr (FunctionPair "$" [x1]) = Just (Application x1)
+
+convertExpr (FunctionPair "+" [x1, x2]) = Just (Add x1 x2)
+convertExpr (FunctionPair "-" [x1, x2]) = Just (Subtract x1 x2)
+convertExpr (FunctionPair "*" [x1, x2]) = Just (Multiply x1 x2)
+convertExpr (FunctionPair "/" [x1, x2]) = Just (Divide x1 x2)
+convertExpr (FunctionPair "^" [x1, x2]) = Just (Power x1 x2)
+
+convertExpr _ = Nothing 
+
