@@ -25,7 +25,7 @@ data FunctionPair = FunctionPair Expr [Expr] deriving (Eq, Show)
 makeStatement :: Either ParseError [Expr] -> Maybe FunctionPair
 makeStatement (Left _) = Nothing
 makeStatement (Right []) = Nothing
-makeStatement (Right (x:xs)) = Just (Statement x xs)
+makeStatement (Right (x:xs)) = Just (FunctionPair x xs)
 
 getAtomValue :: Expr -> Maybe String
 getAtomValue (Atom s) = Just s
@@ -41,18 +41,25 @@ data Statement
   | Divide Expr Expr
   | Power Expr Expr
 
-convertExpr :: FunctionPair -> Maybe Statement
+data CompileError
+  = SyntaxError String
 
-convertExpr (FunctionPair "=" [x1, x2]) = Just (Assignment (getAtomValue x1) x2)
-convertExpr (FunctionPair "defun" [x1, x2]) = Just (Defun (getAtomValue x1) x2)
+convertExpr :: FunctionPair -> Either CompileError Statement
 
-convertExpr (FunctionPair "$" [x1]) = Just (Application x1)
+convertExpr (FunctionPair (Atom "=") [x1, x2]) = case (getAtomValue x1) of
+                                                 Just atom -> Right (Assignment atom x2)
+                                                 Nothing -> Left (SyntaxError "Cannot name a variable with an expression")
 
-convertExpr (FunctionPair "+" [x1, x2]) = Just (Add x1 x2)
-convertExpr (FunctionPair "-" [x1, x2]) = Just (Subtract x1 x2)
-convertExpr (FunctionPair "*" [x1, x2]) = Just (Multiply x1 x2)
-convertExpr (FunctionPair "/" [x1, x2]) = Just (Divide x1 x2)
-convertExpr (FunctionPair "^" [x1, x2]) = Just (Power x1 x2)
+convertExpr (FunctionPair (Atom "defun") [x1, x2]) = case (getAtomValue x1) of 
+                                                     Just atom -> Right (Defun atom x2)
+                                                     Nothing -> Left (SyntaxError "Cannot name a function with an expression")
 
-convertExpr _ = Nothing 
+convertExpr (FunctionPair (Atom "$") [x1]) = Right (Application x1)
 
+convertExpr (FunctionPair (Atom "+") [x1, x2]) = Right (Add x1 x2)
+convertExpr (FunctionPair (Atom "-") [x1, x2]) = Right (Subtract x1 x2)
+convertExpr (FunctionPair (Atom "*") [x1, x2]) = Right (Multiply x1 x2)
+convertExpr (FunctionPair (Atom "/") [x1, x2]) = Right (Divide x1 x2)
+convertExpr (FunctionPair (Atom "^") [x1, x2]) = Right (Power x1 x2)
+
+convertExpr _ = Left (SyntaxError "Invalid Statement")
