@@ -9,7 +9,7 @@ data Expr
   deriving (Eq,Show)
 
 atom :: Parser Expr
-atom = Atom <$> many1 alphaNum
+atom = Atom <$> many1 (letter <|> digit <|> oneOf "=+-/*$^")
 
 list :: Parser Expr
 list = List <$> (between (char '(') (char ')') (spaces *> sepBy expression spaces))
@@ -22,10 +22,8 @@ getAtoms input = parse (spaces *> sepBy expression spaces <* eof) "" input
 
 data FunctionPair = FunctionPair Expr [Expr] deriving (Eq, Show)
 
-makeStatement :: Either ParseError [Expr] -> Maybe FunctionPair
-makeStatement (Left _) = Nothing
-makeStatement (Right []) = Nothing
-makeStatement (Right (x:xs)) = Just (FunctionPair x xs)
+makeStatement :: Expr -> FunctionPair
+makeStatement (List (x:xs)) = FunctionPair x xs
 
 getAtomValue :: Expr -> Maybe String
 getAtomValue (Atom s) = Just s
@@ -40,9 +38,11 @@ data Statement
   | Multiply Expr Expr
   | Divide Expr Expr
   | Power Expr Expr
+  deriving (Show)
 
 data CompileError
   = SyntaxError String
+  deriving (Show)
 
 convertExpr :: FunctionPair -> Either CompileError Statement
 
@@ -67,3 +67,14 @@ convertExpr _ = Left (SyntaxError "Invalid Statement")
 sayCompileError :: Either CompileError Statement -> Maybe String
 sayCompileError (Left (SyntaxError x)) = Just ("Syntax Error: " ++ x)
 sayCompileError _ = Nothing
+
+parseExpr :: Expr -> Either CompileError Statement
+parseExpr = convertExpr . makeStatement 
+
+parseExprs :: [Expr] -> [Either CompileError Statement]
+parseExprs = map parseExpr 
+
+parseString :: String -> Maybe [Either CompileError Statement]
+parseString x = case getAtoms x of
+    Left _ -> Nothing
+    Right exprs -> Just (parseExprs exprs)
