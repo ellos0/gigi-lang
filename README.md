@@ -1,3 +1,3 @@
 ### Gigi Programming Language ###
 
-A functional programming language with the syntax of lisp, feel of haskell, and speed of c. Named after my dog. 
+A functional programming language with the syntax of Lisp, feel of Haskell, and speed of C. Named after my dog.
