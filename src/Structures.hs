@@ -6,14 +6,15 @@ data Expr
   deriving (Eq,Show)
 
 data Statement
-  = Assignment String Expr
-  | Defun String Expr
-  | Application Expr
-  | Add Expr Expr
-  | Subtract Expr Expr
-  | Multiply Expr Expr
-  | Divide Expr Expr
-  | Power Expr Expr
+  = Assignment String Statement
+  | Defun String Statement
+  | Application Statement
+  | Add Statement Statement
+  | Subtract Statement Statement
+  | Multiply Statement Statement
+  | Divide Statement Statement
+  | Power Statement Statement
+  | Literal String
   deriving (Show)
 
 data CompileError
