@@ -1,4 +1,6 @@
-module Gir where
+module Codegen where
+
+import Structures
 
 addSemicolon :: String -> String
 addSemicolon x = x ++ ";"
@@ -15,14 +17,3 @@ codegenStatement (Power x1 x2) = (codegenStatement x1) ++ " ^ " ++ (codegenState
 codegenStatement (Assignment x1 x2) = "auto " ++ x1 ++ " = " ++ (codegenStatement x2)
 --codegenStatement (Defun x1 x2) = (codegenFunction x1 x2)
 codegenStatement (Application x1) = codegenStatement x1 ++ "()"
-
-data Statement
-  = Assignment String Statement
-  | Defun String Statement
-  | Application Statement 
-  | Add Statement Statement
-  | Subtract Statement Statement
-  | Multiply Statement Statement
-  | Divide Statement Statement
-  | Power Statement Statement
-  deriving (Show)
