@@ -1,9 +1,25 @@
-module Structures (Expr(Atom, List), Statement(Assignment, Defun, Application, Add, Subtract, Multiply, Divide, Power), CompileError(SyntaxError)) where
+module Structures where
 
 data Expr
   = Atom String
   | List [Expr]
   deriving (Eq,Show)
+
+getAtomValue :: Expr -> Maybe String
+getAtomValue (Atom s) = Just s
+getAtomValue (List _) = Nothing
+
+getAtomValuePartial :: Expr -> String
+getAtomValuePartial (Atom s) = s
+getAtomValuePartial (List _) = ""
+
+firstOfExpr :: Expr -> Maybe String
+firstOfExpr (Atom _) = Nothing
+firstOfExpr (List x) = getAtomValue (head x)
+
+data CompileError
+  = SyntaxError String
+  deriving (Show)
 
 data Statement
   = Assignment String Statement
@@ -15,8 +31,15 @@ data Statement
   | Divide Statement Statement
   | Power Statement Statement
   | Literal String
+  | NullStatement
+  | Error CompileError
   deriving (Show)
 
-data CompileError
-  = SyntaxError String
-  deriving (Show)
+errorType :: CompileError -> String
+errorType (SyntaxError _) = "SyntaxError"
+
+getErrorValue :: CompileError -> String
+getErrorValue (SyntaxError x) = x
+
+sayCompileError :: CompileError -> String
+sayCompileError (SyntaxError x) =  "Syntax Error: " ++ x

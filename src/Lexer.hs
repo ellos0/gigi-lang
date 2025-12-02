@@ -1,8 +1,7 @@
 module Lexer where
 
-import Text.Parsec
+import Text.Parsec (many1, letter, digit, oneOf, between, char, spaces, sepBy, eof, ParseError, parse, try, (<|>))
 import Text.Parsec.String (Parser)
-import Data.Either (lefts, rights)
 import Structures
 
 atom :: Parser Expr
@@ -17,24 +16,20 @@ expression = try list <|> atom
 getAtoms :: String -> Either ParseError [Expr]
 getAtoms input = parse (spaces *> sepBy expression spaces <* eof) "" input
 
-getAtomValue :: Expr -> Maybe String
-getAtomValue (Atom s) = Just s
-getAtomValue (List _) = Nothing
-
-firstOfExpr :: Expr -> Maybe String
-firstOfExpr (Atom _) = Nothing
-firstOfExpr (List x) = getAtomValue (head x)
-
-lexExpr :: Expr -> Either CompileError Statement 
-
-sayCompileError :: CompileError -> String
-sayCompileError (SyntaxError x) = ("Syntax Error: " ++ x)
-
-throwCompileError :: CompileError -> ()
-throwCompileError x = error (sayCompileError x)
-
-throwErrors :: [Either CompileError Statement] -> [()]
-throwErrors xs = map throwIf xs
-               where
-                 throwIf (Left x) = throwCompileError x
-                 throwIf _ = ()
+lexExpr :: Expr -> Statement
+lexExpr (List []) = NullStatement
+lexExpr (Atom x) = Literal x
+lexExpr (List (x:xs)) = case (getAtomValuePartial x) of
+                          "=" -> case (getAtomValue (xs !! 0)) of
+                            (Just name) -> (Assignment name (lexExpr (xs !! 0)))
+                            (Nothing) -> (Error (SyntaxError "Cannot name variable using expression."))
+                          "defun" -> case (getAtomValue (xs !! 0)) of
+                            (Just name) -> (Defun name (lexExpr (xs !! 0)))
+                            (Nothing) -> (Error (SyntaxError "Cannot name function using expression."))
+                          "$" -> Application (lexExpr (xs !! 0))
+                          "+" -> Add (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          "-" -> Subtract (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          "*" -> Multiply (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          "/" -> Divide (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          "^" -> Power (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          _ -> (Error (SyntaxError "Term not recongnized as a function, operator, or other known device."))                          
