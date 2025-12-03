@@ -18,7 +18,7 @@ common warnings
 executable gigi-language
     import:           warnings
     main-is:          Main.hs
-    -- other-modules:
+    other-modules: Lexer, Codegen, Structures
     -- other-extensions:
     build-depends: base >=4, parsec
     hs-source-dirs:   src
