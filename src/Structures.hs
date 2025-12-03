@@ -31,6 +31,7 @@ data Statement
   | Divide Statement Statement
   | Power Statement Statement
   | Literal String
+  | TypeDeclaration [Statement]
   | NullStatement
   | Error CompileError
   deriving (Show)

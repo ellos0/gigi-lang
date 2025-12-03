@@ -1,6 +1,6 @@
 module Lexer where
 
-import Text.Parsec (many1, letter, digit, oneOf, between, char, spaces, sepBy, eof, ParseError, parse, try, (<|>))
+import Text.Parsec (many1, letter, digit, oneOf, between, char, spaces, sepBy, ParseError, parse, try, (<|>))
 import Text.Parsec.String (Parser)
 import Structures
 
@@ -13,19 +13,20 @@ list = List <$> (between (char '(') (char ')') (spaces *> sepBy expression space
 expression :: Parser Expr
 expression = try list <|> atom
 
-getAtoms :: String -> Either ParseError [Expr]
-getAtoms input = parse (spaces *> sepBy expression spaces <* eof) "" input
+getAtoms :: String -> Either ParseError Expr
+getAtoms input = parse expression "" input
 
 lexExpr :: Expr -> Statement
 lexExpr (List []) = NullStatement
 lexExpr (Atom x) = Literal x
 lexExpr (List (x:xs)) = case (getAtomValuePartial x) of
                           "=" -> case (getAtomValue (xs !! 0)) of
-                            (Just name) -> (Assignment name (lexExpr (xs !! 0)))
+                            (Just name) -> (Assignment name (lexExpr (xs !! 1)))
                             (Nothing) -> (Error (SyntaxError "Cannot name variable using expression."))
                           "defun" -> case (getAtomValue (xs !! 0)) of
                             (Just name) -> (Defun name (lexExpr (xs !! 0)))
                             (Nothing) -> (Error (SyntaxError "Cannot name function using expression."))
+                          "type" -> TypeDeclaration (map lexExpr xs)
                           "$" -> Application (lexExpr (xs !! 0))
                           "+" -> Add (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
                           "-" -> Subtract (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
