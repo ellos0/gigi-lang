@@ -1,7 +1,8 @@
 cabal-version:      3.0
 name:               gigi-language
 version:            0.1.0.0
--- synopsis:
+
+synopsis: A lisp adjacent functional programming language.
 -- description:
 license:            MIT
 license-file:       LICENSE
