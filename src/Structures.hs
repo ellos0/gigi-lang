@@ -22,8 +22,8 @@ data CompileError
   deriving (Show)
 
 data Statement
-  = Assignment String Statement
-  | Defun String Statement
+  = Assignment String Statement Statement
+  | Defun String Statement Statement
   | Application Statement
   | Add Statement Statement
   | Subtract Statement Statement
@@ -35,6 +35,21 @@ data Statement
   | NullStatement
   | Error CompileError
   deriving (Show)
+
+getLiteralValue :: Statement -> String
+getLiteralValue (Literal x) = x
+getLiteralValue _ = ""
+
+extractType :: Statement -> [String]
+extractType x = case x of
+                  (TypeDeclaration xs) -> map (getLiteralValue) xs
+                  _ -> ["auto"]
+
+addSpace :: String -> String
+addSpace x = x ++ " "
+
+extractTypeAddSpace :: Statement -> [String]
+extractTypeAddSpace x = map addSpace (extractType x)
 
 errorType :: CompileError -> String
 errorType (SyntaxError _) = "SyntaxError"
