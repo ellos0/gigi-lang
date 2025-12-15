@@ -1,7 +1,7 @@
 module Main where
 
 import Structures
-import Codegen (codegenStatementAddSemicolon)
+import Codegen (codegenStatementAddSemicolon, boilerplate)
 import Lexer (lexExpr, getAtoms)
 
 lexString :: String -> Statement
@@ -16,7 +16,7 @@ emitOneC s = case (getAtoms s) of
                (Right x) -> (codegenStatementAddSemicolon $ lexExpr $ x)
 
 emitC :: String -> String
-emitC x = unlines (map emitOneC (lines x))
+emitC x = boilerplate (unlines (map emitOneC (lines x)))
 
 main :: IO ()
 main = interact (emitC)
