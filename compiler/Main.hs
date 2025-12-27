@@ -1,9 +1,11 @@
 module Main where
- 
+
 import System.Environment
+import System.IO()
+import qualified Data.Text as T
 
 import Structures
-import Codegen (codegenStatementAddSemicolon, boilerplate)
+import Codegen (codegenStatementNewline, boilerplate)
 import Lexer (lexExpr, getAtoms)
 
 lexString :: String -> Statement
@@ -15,17 +17,23 @@ lexString s = case (getAtoms s) of
 emitOneC :: String -> String
 emitOneC s = case (getAtoms s) of
                (Left _) -> ""
-               (Right x) -> (codegenStatementAddSemicolon $ lexExpr $ x)
+               (Right x) -> (codegenStatementNewline $ lexExpr $ x)
 
 emitC :: String -> String
 emitC x = boilerplate (unlines (map emitOneC (lines x)))
+
+inputExtension :: T.Text
+inputExtension = T.pack $ ".gigi"
+
+outputExtension :: T.Text
+outputExtension = T.pack $ ".c"
 
 main :: IO ()
 main = do
   args <- getArgs
 
   let inputFile = args !! 0
-  let outputFile = args !! 1
+  let outputFile = T.unpack $ (T.replace inputExtension outputExtension) $ T.pack inputFile 
   
   srcCode <- (readFile inputFile)
   

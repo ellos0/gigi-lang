@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               gigi-language
-version:            0.1.0.0
+version:            0.2.0.0
 
 synopsis: A lisp adjacent functional programming language.
 -- description:
@@ -19,7 +19,7 @@ common warnings
 executable gigi-language
     import:           warnings
     main-is:          Main.hs
-    -- other-extensions:
-    build-depends: base >=4, parsec
+    other-modules: Structures, Lexer, Codegen
+    build-depends: base >=4, parsec, text
     hs-source-dirs:   compiler
     default-language: Haskell2010

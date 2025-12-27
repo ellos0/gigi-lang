@@ -1,21 +1,40 @@
 module Structures where
 
-data Expr
+import Data.Char (isNumber) 
+
+stringIsInteger :: String -> Bool
+stringIsInteger [] = False
+stringIsInteger (x:xs) = case x of
+  '-' -> stringIsPositiveInteger xs
+  _ -> stringIsPositiveInteger (x:xs)
+
+stringIsPositiveInteger :: String -> Bool
+stringIsPositiveInteger x = foldr (&&) True (map isNumber x)
+
+doubleQuote :: Char
+doubleQuote = '"'
+
+singleQuote :: Char
+singleQuote = ("'") !! 0
+
+data GigiVal
   = Atom String
-  | List [Expr]
+  | StringVal String
+  | List [GigiVal]
+  | Command String GigiVal
   deriving (Eq,Show)
 
-getAtomValue :: Expr -> Maybe String
+getAtomValue :: GigiVal -> Maybe String
 getAtomValue (Atom s) = Just s
-getAtomValue (List _) = Nothing
+getAtomValue _ = Nothing
 
-getAtomValuePartial :: Expr -> String
+getAtomValuePartial :: GigiVal -> String
 getAtomValuePartial (Atom s) = s
-getAtomValuePartial (List _) = ""
+getAtomValuePartial _ = ""
 
-firstOfExpr :: Expr -> Maybe String
-firstOfExpr (Atom _) = Nothing
+firstOfExpr :: GigiVal -> Maybe String
 firstOfExpr (List x) = getAtomValue (head x)
+firstOfExpr _ = Nothing
 
 data CompileError
   = SyntaxError String
@@ -30,13 +49,19 @@ data Statement
   | Multiply Statement Statement
   | Divide Statement Statement
   | Power Statement Statement
+  | StringLiteral String
+  | IntLiteral String
   | Literal String
+  | Multi [Statement]
+  | CommandStatement String Statement
   | TypeDeclaration [Statement]
   | NullStatement
   | Error CompileError
   deriving (Show)
 
 getLiteralValue :: Statement -> String
+getLiteralValue (StringLiteral x) = x
+getLiteralValue (IntLiteral x) = x
 getLiteralValue (Literal x) = x
 getLiteralValue _ = ""
 
@@ -47,6 +72,9 @@ extractType x = case x of
 
 newline :: Char
 newline = '\n'
+
+newlineArray :: String
+newlineArray = [newline]
 
 addNewline :: String -> String
 addNewline xs = (xs ++ [newline])

@@ -1,43 +1,66 @@
 module Lexer where
 
-import Text.Parsec (many1, letter, digit, oneOf, between, char, spaces, sepBy, ParseError, parse, try, (<|>))
+import Text.Parsec hiding (Error)
 import Text.Parsec.String (Parser)
 
 import Structures
 
-atom :: Parser Expr
-atom = Atom <$> many1 (letter <|> digit <|> oneOf "=+-/*$^")
+symbol :: Parser Char
+symbol = oneOf ("=+-/*$%_&!@#',")
 
-list :: Parser Expr
+eitherQuote :: Parser Char
+eitherQuote = oneOf ([doubleQuote, singleQuote])
+
+command :: Parser GigiVal
+command = do
+  _ <- char ':'
+  x <- (many1 alphaNum)
+  _ <- space
+  xs <- (expression)
+  return (Command x xs)
+
+stringLiteral :: Parser GigiVal
+stringLiteral = StringVal <$> (between (char doubleQuote) (char doubleQuote) (many1 (letter <|> digit <|> symbol <|> space)))
+
+atom :: Parser GigiVal
+atom = Atom <$> many1 (letter <|> digit <|> symbol)
+
+list :: Parser GigiVal
 list = List <$> (between (char '(') (char ')') (spaces *> sepBy expression spaces))
 
-expression :: Parser Expr
-expression = try list <|> atom
+expression :: Parser GigiVal
+expression = try list <|> atom <|> command <|> stringLiteral
 
-getAtoms :: String -> Either ParseError Expr
+getAtoms :: String -> Either ParseError GigiVal
 getAtoms input = parse expression "" input
 
-lexDefun :: [Expr] -> Statement
+lexDefun :: [GigiVal] -> Statement
 lexDefun xs = case (getAtomValue (xs !! 0)) of
                 (Just name) -> (Defun name (lexExpr (xs !! 1)) (lexExpr (xs !! 2)))
                 (Nothing) -> (Error (SyntaxError "Cannot name function using expression."))
 
-lexAssignment :: [Expr] -> Statement
+lexAssignment :: [GigiVal] -> Statement
 lexAssignment xs = case (getAtomValue (xs !! 0)) of
                      (Just name) -> (Assignment name (lexExpr (xs !! 1)) (lexExpr (xs !! 2)))
                      (Nothing) -> (Error (SyntaxError "Cannot name variable using expression."))
 
-lexExpr :: Expr -> Statement
+lexExpr :: GigiVal -> Statement
 lexExpr (List []) = NullStatement
-lexExpr (Atom x) = Literal x
-lexExpr (List (x:xs)) = case (getAtomValuePartial x) of
-                          "=" -> lexAssignment xs
-                          "defun" -> lexDefun xs
-                          "type" -> TypeDeclaration (map lexExpr xs)
-                          "$" -> Application (lexExpr (xs !! 0))
-                          "+" -> Add (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
-                          "-" -> Subtract (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
-                          "*" -> Multiply (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
-                          "/" -> Divide (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
-                          "^" -> Power (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
-                          _ -> (Error (SyntaxError "Term not recongnized as a function, operator, or other known device."))
+
+lexExpr (Command x xs) = CommandStatement x (lexExpr xs)
+lexExpr (StringVal x) = StringLiteral x
+lexExpr (Atom x) 
+  | stringIsInteger x = IntLiteral x
+  | otherwise = Literal x
+
+lexExpr (List (x:xs)) = case (getAtomValue x) of
+                          (Just "=") -> lexAssignment xs
+                          (Just "defun") -> lexDefun xs
+                          (Just "type") -> TypeDeclaration (map lexExpr xs)
+                          (Just "+") -> Add (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          (Just "-") -> Subtract (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          (Just "*") -> Multiply (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          (Just "/") -> Divide (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          (Just "^") -> Power (lexExpr (xs !! 0)) (lexExpr (xs !! 1))
+                          (Just _) -> Application (lexExpr x)
+                          Nothing -> Multi (map lexExpr (x:xs))
