@@ -13,7 +13,7 @@ boilerplate = (jo ["#include <stdio.h>", newlineArray, "//This code was generate
 
 codegenCommand :: String -> Statement -> String
 codegenCommand  x xs = case x of
-  "print" -> jo ["printf(", (codegenStatement (xs)), ")"]
+  "print" -> jo ["puts(", (codegenStatement (xs)), ")"]
   _ -> ""
 
 codegenFunction :: String -> Statement -> Statement -> String
